@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الذيب Play | Theater Mode</title>
+    <style>
+        :root {
+            --obsidian: #050505;
+            --surface: #121212;
+            --surface-highlight: #1e1e1e;
+            --gold: #D4AF37;
+            --gold-dim: #997d26;
+            --text-main: #ffffff;
+            --text-muted: #a0a0a0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--obsidian);
+            color: var(--text-main);
+            overflow-x: hidden;
+        }
+
+        /* Header Navigation */
+        header {
+            background-color: rgba(18, 18, 18, 0.9); /* Semi-transparent */
+            backdrop-filter: blur(10px);
+            padding: 1rem 3rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #333;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--gold);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+
+        .search-bar {
+            flex-grow: 1;
+            max-width: 500px;
+            margin: 0 2rem;
+            position: relative;
+        }
+
+        .search-bar input {
+            width: 100%;
+            background: var(--surface-highlight);
+            border: 1px solid #333;
+            padding: 10px 15px;
+            border-radius: 8px; /* Boxier look for theater mode */
+            color: white;
+            padding-right: 40px; 
+            transition: all 0.3s ease;
+        }
+        
+        .search-bar input:focus {
+            outline: none;
+            border-color: var(--gold);
+            background: black;
+        }
+
+        .user-actions button {
+            background: var(--gold);
+            border: none;
+            color: var(--obsidian);
+            padding: 10px 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .user-actions button:hover {
+            background: white;
+        }
+
+        /* THEATER LAYOUT */
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 3rem;
+            padding: 0; /* Remove padding to let video touch edges */
+            max-width: 100%;
+            margin: 0 auto;
+        }
+
+        /* Main Video Player */
+        .main-stage {
+            width: 100%;
+            background: black; /* Stage background */
+            padding-bottom: 2rem;
+            border-bottom: 1px solid #222;
+        }
+
+        .video-wrapper {
+            width: 100%;
+            max-width: 1600px; /* Limit max width slightly for ultra-wide screens */
+            margin: 0 auto;
+            height: 75vh; /* Cinematic Height */
+            background: black;
+            position: relative;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+        }
+
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain; /* Ensure full video is seen */
+        }
+        
+        .play-overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0,0,0,0.5);
+            cursor: pointer;
+            transition: opacity 0.3s ease;
+            z-index: 10;
+        }
+
+        .hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .play-btn {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: rgba(212, 175, 55, 0.2);
+            backdrop-filter: blur(5px);
+            border: 2px solid var(--gold);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--gold);
+            font-size: 3rem;
+            transition: transform 0.2s ease, background 0.2s;
+        }
+
+        .play-overlay:hover .play-btn {
+            transform: scale(1.1);
+            background: var(--gold);
+            color: var(--obsidian);
+        }
+
+        /* Info Section (Now constrained width below video) */
+        .video-content-area {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .video-info {
+            margin-top: 1rem;
+            display: grid;
+            grid-template-columns: 2fr 1fr; /* Title left, Actions right */
+            gap: 2rem;
+            align-items: start;
+        }
+
+        .video-text h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            color: var(--gold);
+        }
+
+        .video-meta {
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+        }
+
+        .action-bar {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .action-btn {
+            background: var(--surface-highlight);
+            border: 1px solid #333;
+            color: #eee;
+            cursor: pointer;
+            font-size: 0.9rem;
+            padding: 10px 20px;
+            border-radius: 4px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .action-btn:hover {
+            background: var(--gold);
+            color: black;
+            border-color: var(--gold);
+        }
+
+        /* GRID LAYOUT for Recommendations */
+        .recommendations-section {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem 4rem 2rem;
+            width: 100%;
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid #333;
+            padding-bottom: 1rem;
+        }
+        
+        .section-header h3 {
+            color: white;
+            font-size: 1.5rem;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 2rem;
+        }
+
+        /* Vertical Cards */
+        .next-card {
+            display: flex;
+            flex-direction: column; /* Vertical stack */
+            gap: 12px;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .next-card:hover {
+            transform: translateY(-8px);
+        }
+
+        .thumb {
+            width: 100%;
+            aspect-ratio: 16/9;
+            background-color: #333;
+            background-size: cover;
+            background-position: center;
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        
+        .thumb::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0);
+            transition: background 0.3s;
+        }
+        
+        .next-card:hover .thumb::after {
+            background: rgba(0,0,0,0.2);
+        }
+
+        .play-icon-hover {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%) scale(0.5);
+            opacity: 0;
+            width: 50px; height: 50px;
+            background: var(--gold);
+            border-radius: 50%;
+            display: flex; 
+            align-items: center; justify-content: center;
+            color: black;
+            transition: all 0.3s;
+        }
+
+        .next-card:hover .play-icon-hover {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .card-info h4 {
+            font-size: 1.1rem;
+            margin-bottom: 6px;
+            line-height: 1.4;
+            color: #eee;
+        }
+
+        .card-info p {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        /* Gold Accents / Tags */
+        .tag {
+            background: var(--gold);
+            color: black;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            display: inline-block;
+            margin-bottom: 8px;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 900px) {
+            .video-info {
+                grid-template-columns: 1fr;
+            }
+            .action-bar {
+                justify-content: flex-start;
+                margin-top: 1rem;
+            }
+            .video-wrapper {
+                height: 50vh;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo">
+            <span>الذيب</span> <span style="color:white">THEATER</span>
+        </div>
+        <div class="search-bar">
+            <input type="text" placeholder="بحث...">
+        </div>
+        <div class="user-actions">
+            <button>تسجيل الدخول</button>
+        </div>
+    </header>
+
+    <div class="container">
+        
+        <!-- Main Video Area (Theater Stage) -->
+        <div class="main-stage">
+            <div class="video-wrapper" id="videoContainer">
+                 <div class="play-overlay" id="playOverlay">
+                     <div class="play-btn">▶</div>
+                 </div>
+                 
+                 <video id="mainVideo" poster="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/BigBuckBunny.jpg">
+                    <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" type="video/mp4">
+                    متصفحك لا يدعم تشغيل الفيديو.
+                 </video>
+            </div>
+            
+            <div class="video-content-area">
+                <div class="video-info">
+                    <div class="video-text">
+                        <span class="tag">فيلم قصير</span>
+                        <h1>رحلة في أعماق الصحراء: الذيب العربي</h1>
+                        <div class="video-meta">
+                            <span>2026 • 4K HDR • 120,490 مشاهدة</span>
+                        </div>
+                        <p style="color: #ccc; line-height: 1.6; max-width: 800px;">
+                            فيديو توضيحي لتجربة المستخدم في تطبيق الذيب. نستعرض هنا ميزات التصميم الجديد والألوان الذهبية في وضع المسرح (Theater Mode). تم تصميم هذا التخطيط لزيادة التركيز على المحتوى.
+                        </p>
+                    </div>
+
+                    <div class="action-bar">
+                        <button class="action-btn">👍 إعجاب</button>
+                        <button class="action-btn">🔖 قائمة المشاهدة</button>
+                        <button class="action-btn">🔗 مشاركة</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recommendations Grid (Formerly Sidebar) -->
+        <div class="recommendations-section">
+            <div class="section-header">
+                <h3>مقاطع مقترحة لك</h3>
+                <span style="color: var(--gold); cursor: pointer;">عرض الكل ←</span>
+            </div>
+            
+            <div class="grid-container">
+                <!-- Card 1 -->
+                <div class="next-card">
+                    <div class="thumb" style="background-image: url('https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/ElephantsDream.jpg');">
+                        <div class="play-icon-hover">▶</div>
+                    </div>
+                    <div class="card-info">
+                        <h4>تحديثات واجهة المستخدم 2026</h4>
+                        <p>المطور المحترف</p>
+                        <p>10K مشاهدة</p>
+                    </div>
+                </div>
+
+                <!-- Card 2 -->
+                <div class="next-card">
+                    <div class="thumb" style="background-image: url('https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/ForBiggerBlazes.jpg');">
+                        <div class="play-icon-hover">▶</div>
+                    </div>
+                    <div class="card-info">
+                        <h4>شرح ربط API الذكاء الاصطناعي</h4>
+                        <p>Code Master</p>
+                        <p>54K مشاهدة</p>
+                    </div>
+                </div>
+
+                <!-- Card 3 -->
+                <div class="next-card">
+                    <div class="thumb" style="background-image: url('https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/ForBiggerEscapes.jpg');">
+                        <div class="play-icon-hover">▶</div>
+                    </div>
+                    <div class="card-info">
+                        <h4>كيف تختار ألوان التطبيق؟</h4>
+                        <p>Design Hub</p>
+                        <p>2K مشاهدة</p>
+                    </div>
+                </div>
+
+                <!-- Card 4 -->
+                 <div class="next-card">
+                    <div class="thumb" style="background-image: url('https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/ForBiggerFun.jpg');">
+                        <div class="play-icon-hover">▶</div>
+                    </div>
+                    <div class="card-info">
+                        <h4>قصص من التراث: الحكواتي</h4>
+                        <p>قناة القصص</p>
+                        <p>مباشر</p>
+                    </div>
+                </div>
+
+                <!-- Card 5 (Added for Grid) -->
+                <div class="next-card">
+                    <div class="thumb" style="background-image: url('https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/Sintel.jpg');">
+                        <div class="play-icon-hover">▶</div>
+                    </div>
+                    <div class="card-info">
+                        <h4>رحلة البحث عن التنين</h4>
+                        <p>أفلام انميشن</p>
+                        <p>1.2M مشاهدة</p>
+                    </div>
+                </div>
+
+                <!-- Card 6 (Added for Grid) -->
+                <div class="next-card">
+                    <div class="thumb" style="background-image: url('https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/TearsOfSteel.jpg');">
+                        <div class="play-icon-hover">▶</div>
+                    </div>
+                    <div class="card-info">
+                        <h4>دموع الفولاذ: خيال علمي</h4>
+                        <p>الخيال العربي</p>
+                        <p>800K مشاهدة</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const playOverlay = document.getElementById('playOverlay');
+        const video = document.getElementById('mainVideo');
+
+        playOverlay.addEventListener('click', () => {
+            playOverlay.classList.add('hidden');
+            video.play();
+            video.controls = true;
+        });
+    </script>
+
+</body>
+</html>
